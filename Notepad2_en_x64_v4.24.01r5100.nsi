@@ -1,5 +1,7 @@
-;Include Modern UI
 !include "MUI2.nsh"
+!include FileFunc.nsh
+!insertmacro GetParameters
+!insertmacro GetOptions
 !include WinVer.nsh
 !include psexec.nsh
 ;--------------------------------
@@ -20,31 +22,30 @@ SetCompressor /SOLID /FINAL lzma
 InstallDir "$PROGRAMFILES\Notepad2"
 InstallDirRegKey HKLM "Software\Notepad2" "Install_Dir"
 
-
-
 RequestExecutionLevel admin
 ;--------------------------------
 ;Variables
-  Var StartMenuFolder 
+Var StartMenuFolder
+Var installType
 ;--------------------------------
 ;Interface Settings
-  !define MUI_ABORTWARNING
+!define MUI_ABORTWARNING
 ;--------------------------------
 ;Pages
 
-  !insertmacro MUI_PAGE_LICENSE "Notepad2_${RELEASEVERSION}\License.txt"
-  !insertmacro MUI_PAGE_COMPONENTS
-  !insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_LICENSE "Notepad2_${RELEASEVERSION}\License.txt"
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_DIRECTORY
 
-  ;Start Menu Folder Page Configuration
-  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Notepad2"
-  !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
-  
-  !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
-  !insertmacro MUI_PAGE_INSTFILES
-  !insertmacro MUI_UNPAGE_CONFIRM
-  !insertmacro MUI_UNPAGE_INSTFILES
+;Start Menu Folder Page Configuration
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Notepad2"
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
+
+!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
 ;--------------------------------
 
 !ifndef NOINSTTYPES
@@ -54,9 +55,38 @@ InstType "Full"
 !endif
 
 ;--------------------------------
+; Parse command line parameters for silent installation type
+Function .onInit
+    ; Default to minimal installation type
+    StrCpy $installType "minimal"
+
+    ; Parse command line for "/i=" parameter
+    ClearErrors
+    ${GetParameters} $R1
+    ${GetOptions} $R1 /I= $R0
+    IfErrors notFound
+    StrCpy $installType $R0
+
+    notFound:
+
+    ; Assuming SEC02 is the identifier for "Replace Windows Editor"
+    ; Check installation type and dynamically adjust section flags
+    ${If} $installType == "full"
+        SectionGetFlags 2 $R0
+        IntOp $R0 $R0 | ${SF_SELECTED}
+        SectionSetFlags 2 $R0
+    ${Else}
+        SectionGetFlags 2 $R0
+        IntOp $R0 $R0 & ~${SF_SELECTED}
+        SectionSetFlags 2 $R0
+    ${EndIf}
+
+FunctionEnd
+
+;--------------------------------
+; Installation Sections
 
 Section "Notepad2" SEC01
-
 SectionIn 1 2 3 RO
 
   SetOutPath $INSTDIR
