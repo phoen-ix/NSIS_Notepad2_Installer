@@ -5,4 +5,4 @@ For now only an Installer for Notepad2_en_x64_v4.24.01r5100 has been made, but i
 
 Replacing the default editor under Win11 removes the windows editor (I don't know any other solution), uninstalling Notepad2 will install the editor again.
 
-can be silently installed by calling the installer with /S /I=full or minimal (default or without parameter it installs minimal)
+can be installed silently by calling the installer with /S /I=full or minimal (default or without parameter it installs minimal)
