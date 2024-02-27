@@ -57,6 +57,9 @@ InstType "Full"
 ;--------------------------------
 ; Parse command line parameters for silent installation type
 Function .onInit
+
+    StrCpy $INSTDIR "$PROGRAMFILES64\Notepad2"
+
     ; Default to minimal installation type
     StrCpy $installType "minimal"
 
